@@ -1,28 +1,20 @@
 import tensorflow as tf
-import tensorflow_datasets as tfds
 import main as m
-import dataset as ds
 import pickle
 import matplotlib.pyplot as plt
 
+output_label = ["Cat", "Dog"]
+
 #import cats vs dogs dataset
+test_dataset = tf.data.experimental.load("processed_dataset/test/", (tf.TensorSpec(shape=(300, 300, 3), dtype=tf.float32, name=None),
+ tf.TensorSpec(shape=(), dtype=tf.int64, name=None)), compression="GZIP")
 
-dataset_name = 'cats_vs_dogs'
-output_label = ['cat', 'dog']
-ds_raw = tfds.load(
-    name=dataset_name,
-    split = 'train',
-    with_info =False,
-    shuffle_files=False)
-
-ds_raw = ds_raw.take(10)
-
-divider = len(ds_raw)/2
-
-train_dataset, test_dataset = ds.data_preprocessing(dataset=ds_raw, train_test_separator=divider)
+test_dataset = test_dataset.batch(1)
 
 #initialize a random model
+dropout_rate  = 0.7
 test_model = m.cdmodel()
+test_model.dropout_rate = dropout_rate
 
 #retrieve weights saved from training
 with open('saved_weights.pickle', 'rb') as handle :
@@ -30,9 +22,6 @@ with open('saved_weights.pickle', 'rb') as handle :
 
 #update the weights of our model
 test_model.update_weights(new_w)
-
-#to show image
-plt.figure(figsize=(10,10))
 
 #test the model
 for ele in test_dataset :
@@ -45,15 +34,5 @@ for ele in test_dataset :
     target = tf.cast(ele[1], "int64")
     output = ~(prediction ^ target)+2
 
-    label_im = "Data : {0} , Pred : {1}".format(output_label[ele[1][0].numpy()], output_label[prediction[0].numpy()])
-
-    plt.subplot(1,1,1)
-    plt.xticks([])
-    plt.yticks([])
-    plt.grid(False)
-    plt.imshow(ele[0][0] / 255)
-    plt.xlabel(label_im)
-    plt.show()
-
-#show the test image
+    print("Data : {0} , Pred : {1}\n".format(output_label[ele[1][0].numpy()], output_label[prediction[0].numpy()]))
 
