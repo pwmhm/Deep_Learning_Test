@@ -1,34 +1,63 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import matplotlib.pyplot as plt
+import pickle
 
-def data_preprocessing(dataset, train_test_separator, batch_size=1) :
+#set up new empty list
+temp_image = []
+temp_label = []
+batch_size = 1
 
-    #set up new empty list
-    temp_image = []
-    temp_label = []
 
-    #resize all the images to fit our model
-    for ele in dataset :
-        image = tf.image.resize(ele['image'], [300, 300], method='bilinear', antialias=False)
-        temp_image.append(image)
-        temp_label.append(ele['label'])
+dataset_name = 'cats_vs_dogs'
+output_label = ['cat', 'dog']
+ds_raw = tfds.load(
+    name=dataset_name,
+    split = 'train',
+    with_info =False,
+    shuffle_files=False)
 
-    #turn temps into datasets
-    d1 = tf.data.Dataset.from_tensors(temp_image[:])
-    d2 = tf.data.Dataset.from_tensors(temp_label[:])
+ds_raw = ds_raw.take(5000)
+train_test_separator = int(len(ds_raw)/2)
 
-    #merge dataset
-    merge_ds = tf.data.Dataset.zip((d1,d2))
+#resize all the images to fit our model
+for ele in ds_raw :
+    image = tf.image.resize(ele['image'], [300, 300], method='bilinear', antialias=False)
+    temp_image.append(image)
+    temp_label.append(ele['label'])
 
-    #Because of temp variables, the tensors are batched into one single batch. so we need to unbatch first
-    merge_ds = merge_ds.unbatch()
+#turn temps into datasets
+d1 = tf.data.Dataset.from_tensors(temp_image[:])
+d2 = tf.data.Dataset.from_tensors(temp_label[:])
 
-    #now we divide the datasets and batch accordingly
-    out_1 = merge_ds.take(int(train_test_separator))
-    out_2 = merge_ds.skip(int(train_test_separator))
+#merge dataset
+merge_ds = tf.data.Dataset.zip((d1,d2))
 
-    #shuffle to ensure randomness
-    out_1 = out_1.shuffle(len(out_1)).batch(batch_size)
-    out_2 = out_2.shuffle(len(out_2)).batch(1)
+#Because of temp variables, the tensors are batched into one single batch. so we need to unbatch first
+merge_ds = merge_ds.unbatch()
 
-    return out_1, out_2
+#now we divide the datasets and batch accordingly
+out_1 = merge_ds.take(int(train_test_separator))
+out_2 = merge_ds.skip(int(train_test_separator))
+
+#shuffle to ensure randomness
+out_1 = out_1.shuffle(len(out_1))
+out_2 = out_2.shuffle(len(out_2))
+
+# plt.figure(figsize=(10,10))
+#
+# i = 1
+# for ele in out_2 :
+#     plt.subplot(5, 5, i+5)
+#     plt.xticks([])
+#     plt.yticks([])
+#     plt.grid(False)
+#     plt.imshow(ele[0] / 255)
+#     i+=1
+# plt.show()
+
+tf.data.experimental.save(out_1, "processed_dataset/train/", compression="GZIP")
+tf.data.experimental.save(out_2, "processed_dataset/test/", compression="GZIP")
+
+
+
