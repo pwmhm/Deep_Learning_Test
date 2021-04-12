@@ -66,7 +66,7 @@ class cdmodel(tf.Module) :
     self.conv3 = ll.conv2dx(self.conv3, self.model_weights[6], 1)
     self.pool3 = ll.maxpool(self.conv3, 2, 2)
 
-    self.conv4 = ll.conv2dx(self.pool3, self.model_weights[7], 1)                       # 4th Layer
+    self.conv4 = ll.conv2dx(self.pool3, self.model_weights[7], 1)  # 4th Layer
     self.conv4 = ll.conv2dx(self.conv4, self.model_weights[8], 1)
     self.conv4 = ll.conv2dx(self.conv4, self.model_weights[9], 1)
     self.pool4 = ll.maxpool(self.conv4, 2, 2)
