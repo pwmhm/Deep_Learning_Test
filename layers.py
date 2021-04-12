@@ -10,9 +10,9 @@ def maxpool(inp, k, stride_s) :
   poolx = tf.nn.max_pool2d(inp,ksize=[1, k, k, 1], strides=[1, stride_s, stride_s, 1],padding = "VALID")
   return poolx
 
-def dense(inp, weights) :
+def dense(inp, weights, dropout_rate=0.5) :
   densex = tf.nn.relu(tf.matmul(inp, weights))
-  return tf.nn.dropout(densex, 0.5)
+  return tf.nn.dropout(densex, dropout_rate)
 
 
 
