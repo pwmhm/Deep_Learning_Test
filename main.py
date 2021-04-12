@@ -15,6 +15,7 @@ class cdmodel(tf.Module) :
     super(cdmodel, self).__init__()
     self.model_weights = []
     self.output_class = 2
+    self.dropout_rate = 0.5
     #initialize model weights
     #Referring to the documentation of tf.nn.conv2d, the size of the filter argument
     #conforms to [filter_height, filter_width, in_channels, out_channels]
@@ -82,11 +83,11 @@ class cdmodel(tf.Module) :
 
     self.flatten_layer = tf.reshape(self.pool6, shape=(tf.shape(self.pool6)[0], -1))  # flatten
 
-    self.dense1 = ll.dense(self.flatten_layer, self.model_weights[16])
-    self.dense2 = ll.dense(self.dense1, self.model_weights[17])
-    self.dense3 = ll.dense(self.dense2, self.model_weights[18])
-    self.dense4 = ll.dense(self.dense3, self.model_weights[19])
-    self.dense5 = ll.dense(self.dense4, self.model_weights[20])
+    self.dense1 = ll.dense(self.flatten_layer, self.model_weights[16], self.dropout_rate)
+    self.dense2 = ll.dense(self.dense1, self.model_weights[17], self.dropout_rate)
+    self.dense3 = ll.dense(self.dense2, self.model_weights[18], self.dropout_rate)
+    self.dense4 = ll.dense(self.dense3, self.model_weights[19], self.dropout_rate)
+    self.dense5 = ll.dense(self.dense4, self.model_weights[20], self.dropout_rate)
     self.dense6 = tf.matmul(self.dense5, self.model_weights[21])
 
     return tf.nn.softmax(self.dense6)
