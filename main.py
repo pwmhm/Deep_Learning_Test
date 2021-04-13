@@ -3,7 +3,7 @@ import layers as ll
 
 ########## Initializing random values for the weights of filters and pool and dense layers ########
 
-initializer = tf.initializers.glorot_uniform()
+initializer = tf.initializers.HeUniform()
 
 def rng_weight( shape_weight , name ):
   return tf.Variable( initializer( shape_weight ) , name=name , trainable=True , dtype=tf.float32 )
@@ -23,9 +23,11 @@ class cdmodel(tf.Module) :
     # 2. For first use, 3x3 filter would suffice
     # 3. Used working model for output channels which is 16
     self.shape_weight = [
-      [3, 3, 3, 16],            #1st convo 
+      [3, 3, 3, 16],            #1st convo
+      [3, 3, 16, 16],
       [3, 3, 16, 16],
       [3, 3, 16, 32],           #2nd convo layer
+      [3, 3, 32, 32],
       [3, 3, 32, 32],
       [3, 3, 32, 64],           #3rd convo
       [3, 3, 64, 64],
@@ -55,40 +57,42 @@ class cdmodel(tf.Module) :
     x = tf.cast(x, dtype=tf.float32)
     self.conv1 = ll.conv2dx(x, self.model_weights[0], 1)           # 1st Layer
     self.conv1 = ll.conv2dx(self.conv1, self.model_weights[1], 1)
+    self.conv1 = ll.conv2dx(self.conv1, self.model_weights[2], 1)
     self.pool1 = ll.maxpool(self.conv1, 2, 2)
 
-    self.conv2 = ll.conv2dx(self.pool1, self.model_weights[2], 1)  # 2nd Layer
-    self.conv2 = ll.conv2dx(self.conv2, self.model_weights[3], 1)
+    self.conv2 = ll.conv2dx(self.pool1, self.model_weights[3], 1)  # 2nd Layer
+    self.conv2 = ll.conv2dx(self.conv2, self.model_weights[4], 1)
+    self.conv2 = ll.conv2dx(self.conv2, self.model_weights[5], 1)
     self.pool2 = ll.maxpool(self.conv2, 2, 2)
 
-    self.conv3 = ll.conv2dx(self.pool2, self.model_weights[4], 1)  # 3rd Layer
-    self.conv3 = ll.conv2dx(self.conv3, self.model_weights[5], 1)
-    self.conv3 = ll.conv2dx(self.conv3, self.model_weights[6], 1)
+    self.conv3 = ll.conv2dx(self.pool2, self.model_weights[6], 1)  # 3rd Layer
+    self.conv3 = ll.conv2dx(self.conv3, self.model_weights[7], 1)
+    self.conv3 = ll.conv2dx(self.conv3, self.model_weights[8], 1)
     self.pool3 = ll.maxpool(self.conv3, 2, 2)
 
-    self.conv4 = ll.conv2dx(self.pool3, self.model_weights[7], 1)  # 4th Layer
-    self.conv4 = ll.conv2dx(self.conv4, self.model_weights[8], 1)
-    self.conv4 = ll.conv2dx(self.conv4, self.model_weights[9], 1)
+    self.conv4 = ll.conv2dx(self.pool3, self.model_weights[9], 1)  # 4th Layer
+    self.conv4 = ll.conv2dx(self.conv4, self.model_weights[10], 1)
+    self.conv4 = ll.conv2dx(self.conv4, self.model_weights[11], 1)
     self.pool4 = ll.maxpool(self.conv4, 2, 2)
 
-    self.conv5 = ll.conv2dx(self.pool4, self.model_weights[10], 1)                       # 5th Layer
-    self.conv5 = ll.conv2dx(self.conv5, self.model_weights[11], 1)
-    self.conv5 = ll.conv2dx(self.conv5, self.model_weights[12], 1)
+    self.conv5 = ll.conv2dx(self.pool4, self.model_weights[12], 1)                       # 5th Layer
+    self.conv5 = ll.conv2dx(self.conv5, self.model_weights[13], 1)
+    self.conv5 = ll.conv2dx(self.conv5, self.model_weights[14], 1)
     self.pool5 = ll.maxpool(self.conv5, 2, 2)
 
-    self.conv6 = ll.conv2dx(self.pool5, self.model_weights[13], 1)                       # 6th Layer
-    self.conv6 = ll.conv2dx(self.conv6, self.model_weights[14], 1)
-    self.conv6 = ll.conv2dx(self.conv6, self.model_weights[15], 1)
+    self.conv6 = ll.conv2dx(self.pool5, self.model_weights[15], 1)                       # 6th Layer
+    self.conv6 = ll.conv2dx(self.conv6, self.model_weights[16], 1)
+    self.conv6 = ll.conv2dx(self.conv6, self.model_weights[17], 1)
     self.pool6 = ll.maxpool(self.conv6, 2, 2)
 
     self.flatten_layer = tf.reshape(self.pool6, shape=(tf.shape(self.pool6)[0], -1))  # flatten
 
-    self.dense1 = ll.dense(self.flatten_layer, self.model_weights[16], self.dropout_rate)
-    self.dense2 = ll.dense(self.dense1, self.model_weights[17], self.dropout_rate)
-    self.dense3 = ll.dense(self.dense2, self.model_weights[18], self.dropout_rate)
-    self.dense4 = ll.dense(self.dense3, self.model_weights[19], self.dropout_rate)
-    self.dense5 = ll.dense(self.dense4, self.model_weights[20], self.dropout_rate)
-    self.dense6 = tf.matmul(self.dense5, self.model_weights[21])
+    self.dense1 = ll.dense(self.flatten_layer, self.model_weights[18], self.dropout_rate)
+    self.dense2 = ll.dense(self.dense1, self.model_weights[19], self.dropout_rate)
+    self.dense3 = ll.dense(self.dense2, self.model_weights[20], self.dropout_rate)
+    self.dense4 = ll.dense(self.dense3, self.model_weights[21], self.dropout_rate)
+    self.dense5 = ll.dense(self.dense4, self.model_weights[22], self.dropout_rate)
+    self.dense6 = tf.matmul(self.dense5, self.model_weights[23])
 
     return tf.nn.softmax(self.dense6)
   

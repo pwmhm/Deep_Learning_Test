@@ -1,13 +1,13 @@
 import tensorflow as tf
 import main as m
 import pickle
-from datetime import date
+from datetime import datetime
 
 
 #initialize some parameters
-learning_rate = 0.0008   #standard learning rate2
-epoch         = 20      #massive data
-batch_size    = 2
+learning_rate = 1e-5   #standard learning rate2
+epoch         = 3     #massive data
+batch_size    = 4
 dropout_rate  = 0.7
 dataset_name = 'cats_vs_dogs' 
 
@@ -15,6 +15,7 @@ dataset_name = 'cats_vs_dogs'
 train_dataset = tf.data.experimental.load("processed_dataset/train/", (tf.TensorSpec(shape=(300, 300, 3), dtype=tf.float32, name=None),
  tf.TensorSpec(shape=(), dtype=tf.int64, name=None)), compression="GZIP")
 
+train_dataset = train_dataset.shuffle(len(train_dataset))
 train_dataset = train_dataset.batch(batch_size)
 
 
@@ -23,17 +24,23 @@ train_dataset = train_dataset.batch(batch_size)
 def loss(pred, target) :
     return tf.losses.categorical_crossentropy( target , pred )
 
-optimizer = tf.optimizers.Adam( learning_rate ) 
+dt_now = datetime.now()
+namefile = str(dt_now.date())  + "_" + str(dt_now.time())
+namefile = namefile.replace(":", "-")
+print(namefile)
 
 training_model = m.cdmodel()
-str_date = "logs/training-" + str(date.today()) +".txt"
+training_model.dropout_rate = dropout_rate
+str_date = "logs/training-" + str(namefile) +".txt"
 text_file = open(str_date, "wt")
 text_file.write("Parameters : \nLearning_rate = {0} ,Epoch : {1} ,Batch Size : {2},Data Length : {3}\n\n".format(learning_rate, epoch, batch_size, len(train_dataset)))
 text_file.write("Current Epoch,Current Loss\n")
 
 for i in range(epoch) :
     j=0
-    for inputs in train_dataset:
+    learning_rate = learning_rate/pow(2,i)
+    optimizer = tf.optimizers.Adam(learning_rate)
+    for inputs in train_dataset :
         if j%4 == 0 :
             with open('saved_weights.pickle', 'wb') as handle:
                 pickle.dump(training_model.model_weights, handle)
@@ -52,7 +59,7 @@ for i in range(epoch) :
         text_file.write("{0},{1}\n".format(i, tf.reduce_mean(closs)))
         tf.print(i, tf.reduce_mean(closs))
 
-with open('saved_weights.pickle', 'wb') as handle:
+with open('saved_weights.pickle_final', 'wb') as handle:
     pickle.dump(training_model.model_weights, handle)
     print("SAVED!")
 text_file.close()
